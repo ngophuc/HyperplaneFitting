@@ -1,18 +1,10 @@
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include "Functions.h"
+
+#include<CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include<CGAL/point_generators_3.h>
 #include<CGAL/algorithm.h>
 #include<CGAL/random_selection.h>
 #include<CGAL/Delaunay_triangulation_3.h>
-
-#ifdef CGAL_USE_BASIC_VIEWER
-#include <CGAL/draw_triangulation_3.h>
-#endif
-
-#include <iostream>
-#include <fstream>
-#include <cassert>
-#include <list>
-#include <vector>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef CGAL::Delaunay_triangulation_3<Kernel> Delaunay;
@@ -25,26 +17,6 @@ typedef Delaunay::Edge_iterator    Edge_iterator;
 typedef Delaunay::Facet_iterator   Facet_iterator;
 typedef Delaunay::Locate_type      Locate_type;
 typedef Delaunay::Point            Point;
-
-
-#include "DGtal/base/BasicTypes.h"
-#include "DGtal/helpers/StdDefs.h"
-#include "DGtal/io/viewers/Viewer3D.h"
-#include <DGtal/io/readers/PointListReader.h>
-
-using namespace std;
-using namespace DGtal;
-
-namespace Z4i {
-    typedef DGtal::int32_t Integer;
-    typedef SpaceND< 4, Integer > Space;
-    typedef Space Z4;
-    typedef Space::Point Point;
-    typedef Space::Vector Vector;
-    typedef Space::RealPoint RealPoint;
-    typedef Space::RealVector RealVector;
-}
-typedef DGtal::Viewer3D<> MyViewer;
 
 template <typename TPoint>
 void findBoundingBox(const vector<TPoint>& vec, TPoint& min, TPoint& max)
@@ -117,7 +89,8 @@ double distancePoints(Z3i::RealPoint p1, Z3i::RealPoint p2)
 }
 
 template <typename TPoint3D, typename TPoint4D>
-double widthTetradron(TPoint3D p1, TPoint3D p2, TPoint3D p3, TPoint3D p4) {
+double widthTetradron(TPoint3D p1, TPoint3D p2, TPoint3D p3, TPoint3D p4)
+{
     TPoint4D pl1=planeEquation<TPoint3D,TPoint4D>(p1,p2,p3);
     TPoint4D pl2=planeEquation<TPoint3D,TPoint4D>(p1,p2,p4);
     TPoint4D pl3=planeEquation<TPoint3D,TPoint4D>(p2,p3,p4);
@@ -137,7 +110,8 @@ double widthTetradron(TPoint3D p1, TPoint3D p2, TPoint3D p3, TPoint3D p4) {
 }
 
 template <typename TPoint3D, typename TPoint4D>
-double widthTetradron(TPoint3D p1, TPoint3D p2, TPoint3D p3, TPoint3D p4, int index) {
+double widthTetradron(TPoint3D p1, TPoint3D p2, TPoint3D p3, TPoint3D p4, int index)
+{
     TPoint4D pl1=planeEquation<TPoint3D,TPoint4D>(p1,p2,p3);
     TPoint4D pl2=planeEquation<TPoint3D,TPoint4D>(p1,p2,p4);
     TPoint4D pl3=planeEquation<TPoint3D,TPoint4D>(p2,p3,p4);
@@ -161,8 +135,8 @@ double widthTetradron(TPoint3D p1, TPoint3D p2, TPoint3D p3, TPoint3D p4, int in
 template <typename TPoint>
 bool belongDP(int a, int b, int c, int mu, int omega, TPoint p)
 {
-    int r1=a*p[0]+b*p[1]+c*p[2]+mu;
-    int r2=a*p[0]+b*p[1]+c*p[2]+omega;
+    long int r1=a*p[0]+b*p[1]+c*p[2]+mu;
+    long int r2=a*p[0]+b*p[1]+c*p[2]+omega;
     return (r1*r2)<=0;
 }
 
@@ -174,18 +148,6 @@ vector<TPoint> countFitting(int a, int b, int c, int mu, int omega, const vector
         if(belongDP(a,b,c,mu,omega,vecP.at(it)))
             p.push_back(vecP.at(it));
     return p;
-}
-
-template <typename T>
-vector<size_t> sort_indexes(const vector<T> &v)
-{
-    // initialize original index locations
-    vector<size_t> idx(v.size());
-    iota(idx.begin(), idx.end(), 0);
-    // sort indexes based on comparing values in v
-    sort(idx.begin(), idx.end(),
-         [&v](size_t i1, size_t i2) {return v[i1] > v[i2];});
-    return idx;
 }
 
 //Given a tetradron (t1t2t3t4), compute the fitting plane
@@ -233,6 +195,7 @@ vector<TPoint3D> fittingTetradron(TPoint3D t1, TPoint3D t2, TPoint3D t3, TPoint3
         int mu=pl1[3],omega=pl2[3];
         vP4=countFitting(a,b,c,mu,omega,vecP);
     }
+    
     //Sort index of vP1...vP4 to find max fitting
     vector<size_t> s;
     s.push_back(vP1.size());
@@ -367,8 +330,16 @@ void drawFittingTetradron(TPoint3D t1, TPoint3D t2, TPoint3D t3, TPoint3D t4, in
 int main(int argc, char** argv)
 {
     /*****  Read input points *****/
-    string filename="test7.dat";//Al050 test7 Cube
-    vector<Z3i::Point> tL=PointListReader<Z3i::Point>::getPointsFromFile(filename);
+    string filename="test1.txt";//cube2_d8_boundary6
+    ifstream inFile;
+    inFile.open(filename.c_str());
+    int nbPoint=0, x=0, y=0, z=0;
+    inFile >> nbPoint;
+    std::vector<Z3i::Point> tL;
+    for(int it=0; it<nbPoint; it++){
+        inFile >> x >> y >> z;
+        tL.push_back(Z3i::Point(x,y,z));
+    }
     std::list<Point> L;
     for(vector<Z3i::Point>::const_iterator it=tL.begin(); it!=tL.end(); it++)
         L.push_front(Point((*it)[0],(*it)[1],(*it)[2]));

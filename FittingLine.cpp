@@ -1,11 +1,8 @@
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include "Functions.h"
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_2.h>
-#include <iterator>
+
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef K::Point_2 Point_2;
 typedef K::Iso_rectangle_2 Iso_rectangle_2;
@@ -18,14 +15,6 @@ typedef Delaunay_triangulation_2::Face_handle      Face_handle;
 typedef Delaunay_triangulation_2::Vertex_iterator  Vertex_iterator;
 typedef Delaunay_triangulation_2::Edge_iterator    Edge_iterator;
 typedef Delaunay_triangulation_2::Face_iterator    Face_iterator;
-
-#include "DGtal/io/boards/Board2D.h"
-#include "DGtal/io/Color.h"
-#include "DGtal/helpers/StdDefs.h"
-
-using namespace cv;
-using namespace std;
-using namespace DGtal;
 
 //A class to recover Voronoi diagram from stream
 struct Cropped_voronoi_from_delaunay{
@@ -46,23 +35,27 @@ struct Cropped_voronoi_from_delaunay{
     void operator<<(const Segment_2& seg){ crop_and_extract_segment(seg); }
 };
 
-void findBoundingBox(const vector<Point_2>& vec, int& minX, int& minY, int& maxX, int& maxY)
+template <typename TPoint>
+void findBoundingBox(const vector<TPoint>& vec, TPoint& min, TPoint& max)
 {
-    minX=vec.at(0)[0], minY=vec.at(0)[1];
-    maxX=vec.at(0)[0], maxY=vec.at(0)[1];
-    for(vector<Point_2>::const_iterator it=vec.begin(); it!=vec.end(); it++)
-    {
-        if((*it)[0]<minX)
-            minX=(*it)[0];
-        if((*it)[1]<minY)
-            minY=(*it)[1];
+    int minX=vec.at(0)[0], minY=vec.at(0)[1];
+    int maxX=vec.at(0)[0], maxY=vec.at(0)[1];
+    //for(vector<TPoint>::const_iterator it=vec.begin(); it!=vec.end(); it++)
+    for(size_t it=1; it<vec.size(); it++) {
+        if(vec.at(it)[0]<minX)
+            minX=vec.at(it)[0];
+        if(vec.at(it)[1]<minY)
+            minY=vec.at(it)[1];
         
-        if((*it)[0]>maxX)
-            maxX=(*it)[0];
-        if((*it)[1]>maxY)
-            maxY=(*it)[1];
+        if(vec.at(it)[0]>maxX)
+            maxX=vec.at(it)[0];
+        if(vec.at(it)[1]>maxY)
+            maxY=vec.at(it)[1];
     }
-    cout<<"min=("<<minX<<","<<minY<<") and max=("<<maxX<<","<<maxY<<")"<<endl;
+    min[0]=minX;
+    min[1]=minY;
+    max[0]=maxX;
+    max[1]=maxY;
 }
 
 //Equation of line passing through two points: ax+by+c=0
@@ -143,7 +136,7 @@ double widthTriangle(TPoint2D p1, TPoint2D p2, TPoint2D p3, int index) {
 
 //Digital Straight Line : mu <= ax + by <= omega
 template <typename TPoint>
-bool belongDSS(int a, int b, int mu, int omega, TPoint p)
+bool belongDL(int a, int b, int mu, int omega, TPoint p)
 {
     int r1=a*p[0]+b*p[1]+mu;
     int r2=a*p[0]+b*p[1]+omega;
@@ -154,10 +147,9 @@ vector<TPoint> countFitting(int a, int b, int mu, int omega, const vector<TPoint
 {
     vector<TPoint> p;
     for(size_t it=0; it<vecP.size(); it++)
-        if(belongDSS(a,b,mu,omega,vecP.at(it)))
+        if(belongDL(a,b,mu,omega,vecP.at(it)))
             p.push_back(vecP.at(it));
     return p;
-    
 }
 
 //Given a triangle (t1t2t3), compute the fitting line
@@ -192,32 +184,28 @@ vector<TPoint2D> fittingTriangle(TPoint2D t1, TPoint2D t2, TPoint2D t3, const ve
         int mu=l1[2],omega=l2[2];
         vP3=countFitting(a,b,mu,omega,vecP);
     }
-    if(vP1.size()<vP2.size()) {
-        if(vP2.size()<vP3.size()) {
-            index=2;
-            return vP3;
-        }
-        else {
-            index=1;
-            return vP2;
-        }
-    }
-    else {
-        if(vP1.size()<vP3.size()) {
-            index=2;
-            return vP3;
-        }
-        else {
-            index=0;
-            return vP1;
-        }
-    }
-    return vP1;
+    //Sort index of vP1...vP4 to find max fitting
+    vector<size_t> s;
+    s.push_back(vP1.size());
+    s.push_back(vP2.size());
+    s.push_back(vP3.size());
+    vector<size_t> ss=sort_indexes(s);
+    index=ss.at(0);
+    if(index==0)
+        return vP1;
+    if(index==1)
+        return vP2;
+    return vP3;
 }
 
 template <typename TPoint2D, typename TPoint3D>
-void drawFittingTriangle(TPoint2D t1, TPoint2D t2, TPoint2D t3, int minX, int minY, int maxX, int maxY, int index, Z2i::RealPoint& p1, Z2i::RealPoint& p2, Z2i::RealPoint& p3, Z2i::RealPoint& p4)
+void drawFittingTriangle(TPoint2D t1, TPoint2D t2, TPoint2D t3, TPoint2D bmin, TPoint2D bmax, int index, Z2i::RealPoint& p1, Z2i::RealPoint& p2, Z2i::RealPoint& p3, Z2i::RealPoint& p4)
 {
+    int minX=bmin[0];
+    int minY=bmin[1];
+    int maxX=bmax[0];
+    int maxY=bmax[1];
+    
     TPoint3D l1,l2;
     if(index==0)//Line 1 : t2t3->t1
     {
@@ -265,31 +253,33 @@ void drawFittingTriangle(TPoint2D t1, TPoint2D t2, TPoint2D t3, int minX, int mi
 }
 
 int main(){
-    string filename="test1";
-    ifstream inFile;
+    /*****  Read input points *****/
+    string filename="test1";//cube2_d8_boundary6
     string input=filename+".txt";
+    ifstream inFile;
     inFile.open(input.c_str());
     int nbPoint=0, x=0, y=0;
     inFile >> nbPoint;
-    std::vector<Point_2> points;
+    std::vector<Z2i::Point> tL;
     for(int it=0; it<nbPoint; it++){
         inFile >> x >> y;
-        points.push_back(Point_2(x,y));
+        tL.push_back(Z2i::Point(x,y));
     }
+    std::list<Point_2> L;
+    for(vector<Z2i::Point>::const_iterator it=tL.begin(); it!=tL.end(); it++)
+        L.push_front(Point_2((*it)[0],(*it)[1]));
+    /*****  Read input points *****/
 
-    int minX,minY,maxX,maxY;
-    findBoundingBox(points,minX,minY,maxX,maxY);
-    minX-=2;
-    minY-=2;
-    maxX+=2;
-    maxY+=2;
-    
+    /***** Delaunay Triangulation *****/
     Delaunay_triangulation_2 dt2;
-    //insert points into the triangulation
-    dt2.insert(points.begin(),points.end());
+    dt2.insert(L.begin(),L.end());
+    /***** Delaunay Triangulation *****/
     
     Board2D aBoard;
-
+    Z2i::Point bmin,bmax;
+    findBoundingBox(tL,bmin,bmax);
+    bmin=bmin-Z2i::Point(2,2);
+    bmax=bmax+Z2i::Point(2,2);
     //Draw the input points
     Delaunay_triangulation_2::size_type n = dt2.number_of_vertices();
     std::vector<Vertex_handle> TV(n);
@@ -344,7 +334,7 @@ int main(){
 
     //Draw the best fitting line
     Z2i::RealPoint dp1,dp2,dp3,dp4;
-    drawFittingTriangle<Z2i::Point,Z3i::Point>(p1,p2,p3,minX,minY,maxX,maxY,index,dp1,dp2,dp3,dp4);
+    drawFittingTriangle<Z2i::Point,Z3i::Point>(p1,p2,p3,bmin,bmax,index,dp1,dp2,dp3,dp4);
     aBoard.setLineWidth(3.0);
     aBoard.setPenColor(DGtal::Color::Red);
     aBoard.drawLine(dp1[0],dp1[1],dp2[0],dp2[1]);
