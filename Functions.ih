@@ -1,0 +1,584 @@
+/********** Common functions *******************/
+inline
+vector<size_t> sort_indexes(const vector<size_t> &v)
+{
+    // initialize original index locations
+    vector<size_t> idx(v.size());
+    iota(idx.begin(), idx.end(), 0);
+    // sort indexes based on comparing values in v
+    sort(idx.begin(), idx.end(),
+         [&v](size_t i1, size_t i2) {return v[i1] > v[i2];});
+    return idx;
+}
+/********** Common functions *******************/
+
+/********** Line fitting functions *******************/
+template <typename TPoint>
+inline
+void FittingLineFct<TPoint>::findBoundingBox(const vector<TPoint>& vec, TPoint& min, TPoint& max)
+{
+    int minX=vec.at(0)[0], minY=vec.at(0)[1];
+    int maxX=vec.at(0)[0], maxY=vec.at(0)[1];
+    //for(vector<TPoint>::const_iterator it=vec.begin(); it!=vec.end(); it++)
+    for(size_t it=1; it<vec.size(); it++) {
+        if(vec.at(it)[0]<minX)
+            minX=vec.at(it)[0];
+        if(vec.at(it)[1]<minY)
+            minY=vec.at(it)[1];
+        
+        if(vec.at(it)[0]>maxX)
+            maxX=vec.at(it)[0];
+        if(vec.at(it)[1]>maxY)
+            maxY=vec.at(it)[1];
+    }
+    min[0]=minX;
+    min[1]=minY;
+    max[0]=maxX;
+    max[1]=maxY;
+}
+
+//Equation of line passing through two points: ax+by+c=0
+template <typename TPoint>
+template <typename TPoint2D, typename TPoint3D>
+inline
+TPoint3D FittingLineFct<TPoint>::lineEquation(TPoint2D p1, TPoint2D p2)
+{
+    return TPoint3D(p1[1]-p2[1],p2[0]-p1[0],p1[0]*p2[1]-p2[0]*p1[1]);
+}
+
+//Equation of line of direction (a,b) passing through a point p: c=-ax-by
+template <typename TPoint>
+template <typename TPoint2D, typename TPoint3D>
+inline
+TPoint3D FittingLineFct<TPoint>::lineEquation(int a, int b, TPoint2D p)
+{
+    return TPoint3D(a,b,-(a*p[0]+b*p[1]));
+}
+
+template <typename TPoint>
+inline
+Z2i::RealPoint FittingLineFct<TPoint>::projectPoint(const double aa, const double bb, const double cc, const TPoint aM)
+{
+    double xm=aM[0];
+    double ym=aM[1];
+    //computation line: ax+by+c=0
+    double d2=-( aa * aa + bb * bb );
+    double s=-bb * xm + aa * ym;
+    double xp=( aa * cc + bb * s ) / d2;
+    double yp=( bb * cc - aa * s ) / d2;
+    return Z2i::RealPoint( xp, yp );
+}
+
+//Segment equation: a x + by + c=0
+template <typename TPoint>
+inline
+double FittingLineFct<TPoint>::distancePointSegment(TPoint p, double a, double b, double c)
+{
+    if(a==0 && b==0)
+        return 0;
+    return fabs(a*p[0] + b*p[1] + c)/sqrt(a*a+b*b);
+}
+
+template <typename TPoint>
+inline
+double FittingLineFct<TPoint>::distancePoints(Z2i::RealPoint p1, Z2i::RealPoint p2)
+{
+    return sqrt((p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1]));
+}
+
+template <typename TPoint>
+template <typename TPoint2D, typename TPoint3D>
+inline
+double FittingLineFct<TPoint>::widthTriangle(TPoint2D p1, TPoint2D p2, TPoint2D p3) {
+    
+    TPoint3D l1=lineEquation<TPoint2D,TPoint3D>(p2,p3);
+    TPoint3D l2=lineEquation<TPoint2D,TPoint3D>(p3,p1);
+    TPoint3D l3=lineEquation<TPoint2D,TPoint3D>(p2,p1);
+    
+    Z2i::RealPoint pp3=projectPoint((double)l1[0],(double)l1[1],(double)l1[2],p1);
+    Z2i::RealPoint pp2=projectPoint((double)l2[0],(double)l2[1],(double)l2[2],p2);
+    Z2i::RealPoint pp1=projectPoint((double)l3[0],(double)l3[1],(double)l3[2],p3);
+    
+    double d1=distancePoints(p1,pp1);//distancePointSegment(pp1, (double)l1[0],(double)l1[1],(double)l1[2]);
+    double d2=distancePoints(p2,pp2);//distancePointSegment(pp2, (double)l2[0],(double)l2[1],(double)l2[2]);
+    double d3=distancePoints(p3,pp3);//distancePointSegment(pp3, (double)l3[0],(double)l3[1],(double)l3[2]);
+    
+    return std::min(d1,std::min(d2,d3));
+}
+
+template <typename TPoint>
+template <typename TPoint2D, typename TPoint3D>
+inline
+double FittingLineFct<TPoint>::widthTriangle(TPoint2D p1, TPoint2D p2, TPoint2D p3, int index) {
+    TPoint3D l1=lineEquation<TPoint2D,TPoint3D>(p2,p3);
+    TPoint3D l2=lineEquation<TPoint2D,TPoint3D>(p3,p1);
+    TPoint3D l3=lineEquation<TPoint2D,TPoint3D>(p2,p1);
+
+    Z2i::RealPoint pp3=projectPoint((double)l1[0],(double)l1[1],(double)l1[2],p1);
+    Z2i::RealPoint pp2=projectPoint((double)l2[0],(double)l2[1],(double)l2[2],p2);
+    Z2i::RealPoint pp1=projectPoint((double)l3[0],(double)l3[1],(double)l3[2],p3);
+
+    double d1=distancePoints(p1,pp1);//distancePointSegment(pp1, (double)l1[0],(double)l1[1],(double)l1[2]);
+    double d2=distancePoints(p2,pp2);//distancePointSegment(pp2, (double)l2[0],(double)l2[1],(double)l2[2]);
+    double d3=distancePoints(p3,pp3);//distancePointSegment(pp3, (double)l3[0],(double)l3[1],(double)l3[2]);
+    
+    if(index==0) return d1;
+    if(index==1) return d2;
+    return d3;
+}
+
+//Digital Straight Line : mu <= ax + by <= omega
+template <typename TPoint>
+inline
+bool FittingLineFct<TPoint>::belongDL(int a, int b, int mu, int omega, TPoint p)
+{
+    int r1=a*p[0]+b*p[1]+mu;
+    int r2=a*p[0]+b*p[1]+omega;
+    return r1*r2<=0;
+}
+
+template <typename TPoint>
+inline
+vector<TPoint> FittingLineFct<TPoint>::countFitting(int a, int b, int mu, int omega, const vector<TPoint>& vecP)
+{
+    vector<TPoint> p;
+    for(size_t it=0; it<vecP.size(); it++)
+        if(belongDL(a,b,mu,omega,vecP.at(it)))
+            p.push_back(vecP.at(it));
+    return p;
+}
+
+//Given a triangle (t1t2t3), compute the fitting line
+template <typename TPoint>
+template <typename TPoint2D, typename TPoint3D>
+inline
+vector<TPoint2D> FittingLineFct<TPoint>::fittingTriangle(TPoint2D t1, TPoint2D t2, TPoint2D t3, const vector<TPoint2D>& vecP, double width, int& index)
+{
+    vector<TPoint2D> vP1,vP2,vP3;
+    double w1=widthTriangle<TPoint2D,TPoint3D>(t1,t2,t3,0);
+    if(w1<=width) { //Line 1 : t2t3->t1
+        TPoint3D l1=lineEquation<TPoint2D,TPoint3D>(t3, t2);
+        TPoint3D l2=lineEquation<TPoint2D,TPoint3D>(l1[0], l1[1], t1);
+        int a=l1[0];
+        int b=l1[1];
+        int mu=l1[2],omega=l2[2];
+        vP1=countFitting(a,b,mu,omega,vecP);
+    }
+    double w2=widthTriangle<TPoint2D,TPoint3D>(t1,t2,t3,1);
+    if(w2<=width) {//Line 2 : t1t3->t2
+        TPoint3D l1=lineEquation<TPoint2D,TPoint3D>(t1, t3);
+        TPoint3D l2=lineEquation<TPoint2D,TPoint3D>(l1[0], l1[1], t2);
+        int a=l1[0];
+        int b=l1[1];
+        int mu=l1[2],omega=l2[2];
+        vP2=countFitting(a,b,mu,omega,vecP);
+    }
+    double w3=widthTriangle<TPoint2D,TPoint3D>(t1,t2,t3,2);
+    if(w3<=width) {//Line 3 : t1t2->t3
+        TPoint3D l1=lineEquation<TPoint2D,TPoint3D>(t2, t1);
+        TPoint3D l2=lineEquation<TPoint2D,TPoint3D>(l1[0], l1[1], t3);
+        int a=l1[0];
+        int b=l1[1];
+        int mu=l1[2],omega=l2[2];
+        vP3=countFitting(a,b,mu,omega,vecP);
+    }
+    //Sort index of vP1...vP4 to find max fitting
+    vector<size_t> s;
+    s.push_back(vP1.size());
+    s.push_back(vP2.size());
+    s.push_back(vP3.size());
+    vector<size_t> ss=sort_indexes(s);
+    index=ss.at(0);
+    if(index==0)
+        return vP1;
+    if(index==1)
+        return vP2;
+    return vP3;
+}
+
+template <typename TPoint>
+template <typename TPoint2D, typename TPoint3D>
+inline
+void FittingLineFct<TPoint>::drawFittingTriangle(TPoint2D t1, TPoint2D t2, TPoint2D t3, TPoint2D bmin, TPoint2D bmax, int index, Z2i::RealPoint& p1, Z2i::RealPoint& p2, Z2i::RealPoint& p3, Z2i::RealPoint& p4)
+{
+    int minX=bmin[0];
+    int minY=bmin[1];
+    int maxX=bmax[0];
+    int maxY=bmax[1];
+    
+    TPoint3D l1,l2;
+    if(index==0)//Line 1 : t2t3->t1
+    {
+        l1=lineEquation<TPoint2D,TPoint3D>(t3, t2);
+        l2=lineEquation<TPoint2D,TPoint3D>(l1[0], l1[1], t1);
+    }
+    else if(index==1)//Line 2 : t1t3->t2
+    {
+        l1=lineEquation<TPoint2D,TPoint3D>(t1, t3);
+        l2=lineEquation<TPoint2D,TPoint3D>(l1[0], l1[1], t2);
+    }
+    else//Line 3 : t1t2->t3
+    {
+        l1=lineEquation<TPoint2D,TPoint3D>(t2, t1);
+        l2=lineEquation<TPoint2D,TPoint3D>(l1[0], l1[1], t3);
+    }
+    
+    int a=l1[0];
+    int b=l1[1];
+    int mu=l1[2],omega=l2[2];
+    if(a!=0) {
+        //ax+by+mu=0
+        p1[1]=minY;
+        p1[0]=-(mu+b*p1[1])/a;
+        p2[1]=maxY;
+        p2[0]=-(mu+b*p2[1])/a;
+        //ax+by+omega=0
+        p3[1]=minY;
+        p3[0]=-(omega+b*p3[1])/a;
+        p4[1]=maxY;
+        p4[0]=-(omega+b*p4[1])/a;
+    }
+    else if(b!=0) {
+        //ax+by+mu=0
+        p1[0]=minX;
+        p1[1]=-(mu+a*p1[0])/b;
+        p2[0]=maxX;
+        p2[1]=-(mu+a*p2[0])/b;
+        //ax+by+omega=0
+        p3[0]=minX;
+        p3[1]=-(omega+a*p3[0])/b;
+        p4[0]=maxX;
+        p4[1]=-(omega+a*p4[0])/b;
+    }
+}
+/********** Line fitting functions *******************/
+
+/********** Plane fitting functions *******************/
+template <typename TPoint>
+inline
+void FittingPlaneFct<TPoint>::findBoundingBox(const vector<TPoint>& vec, TPoint& min, TPoint& max)
+{
+    int minX=vec.at(0)[0], minY=vec.at(0)[1], minZ=vec.at(0)[2];
+    int maxX=vec.at(0)[0], maxY=vec.at(0)[1], maxZ=vec.at(0)[2];
+    //for(vector<TPoint>::const_iterator it=vec.begin(); it!=vec.end(); it++)
+    for(size_t it=1; it<vec.size(); it++) {
+        if(vec.at(it)[0]<minX)
+            minX=vec.at(it)[0];
+        if(vec.at(it)[1]<minY)
+            minY=vec.at(it)[1];
+        if(vec.at(it)[2]<minZ)
+            minZ=vec.at(it)[2];
+        
+        if(vec.at(it)[0]>maxX)
+            maxX=vec.at(it)[0];
+        if(vec.at(it)[1]>maxY)
+            maxY=vec.at(it)[1];
+        if(vec.at(it)[2]>maxZ)
+            maxZ=vec.at(it)[2];
+    }
+    min[0]=minX;
+    min[1]=minY;
+    min[2]=minZ;
+    max[0]=maxX;
+    max[1]=maxY;
+    max[2]=maxZ;
+}
+
+//Equation of line passing through three points: ax+by+cz+d=0
+template <typename TPoint>
+template <typename TPoint3D, typename TPoint4D>
+inline
+TPoint4D FittingPlaneFct<TPoint>::planeEquation(TPoint3D p1, TPoint3D p2, TPoint3D p3)
+{
+    TPoint3D p1p2 (p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]);//AB
+    TPoint3D p1p3 (p3[0]-p1[0],p3[1]-p1[1],p3[2]-p1[2]);//AC
+    int a=p1p2[1]*p1p3[2]-p1p2[2]*p1p3[1];
+    int b=p1p2[2]*p1p3[0]-p1p2[0]*p1p3[2];
+    int c=p1p2[0]*p1p3[1]-p1p2[1]*p1p3[0];
+    int d=-(a*p1[0]+b*p1[1]+c*p1[2]);
+    return TPoint4D(a,b,c,d);
+}
+
+//Equation of line of direction (a,b,c) passing through a point p: d=-ax-by-cz
+template <typename TPoint>
+template <typename TPoint3D, typename TPoint4D>
+inline
+TPoint4D FittingPlaneFct<TPoint>::planeEquation(int a, int b, int c, TPoint3D p)
+{
+    return TPoint4D(a,b,c,-(a*p[0]+b*p[1]+c*p[2]));
+}
+
+template <typename TPoint>
+inline
+Z3i::RealPoint FittingPlaneFct<TPoint>::projectPoint(const double aa, const double bb, const double cc, const double dd, const TPoint aM)
+{
+    double t = -(aa*aM[0]+bb*aM[1]+cc*aM[2]+dd)/(aa*aa+bb*bb+cc*cc);
+    return Z3i::RealPoint( aa*t+aM[0], bb*t+aM[1], cc*t+aM[2] );
+}
+
+//Plane equation: a x + by + cz +d=0
+template <typename TPoint>
+inline
+double FittingPlaneFct<TPoint>::distancePointPlane(TPoint p, double a, double b, double c, double d)
+{
+    if(a==0 && b==0 && c==0)
+        return 0;
+    return fabs(a*p[0] + b*p[1] + c*p[2])/sqrt(a*a+b*b+c*c);
+}
+
+template <typename TPoint>
+template <typename TPoint1, typename TPoint2>
+inline
+double FittingPlaneFct<TPoint>::distancePoints(TPoint1 p1, TPoint2 p2)
+{
+    return sqrt((p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1]) + (p1[2]-p2[2])*(p1[2]-p2[2]));
+}
+
+template <typename TPoint>
+template <typename TPoint3D, typename TPoint4D>
+inline
+double FittingPlaneFct<TPoint>::widthTetradron(TPoint3D p1, TPoint3D p2, TPoint3D p3, TPoint3D p4)
+{
+    TPoint4D pl1=planeEquation<TPoint3D,TPoint4D>(p1,p2,p3);
+    TPoint4D pl2=planeEquation<TPoint3D,TPoint4D>(p1,p2,p4);
+    TPoint4D pl3=planeEquation<TPoint3D,TPoint4D>(p2,p3,p4);
+    TPoint4D pl4=planeEquation<TPoint3D,TPoint4D>(p1,p3,p4);
+    
+    Z3i::RealPoint pp1=projectPoint((double)pl3[0],(double)pl3[1],(double)pl3[2],(double)pl3[3],p1);
+    Z3i::RealPoint pp2=projectPoint((double)pl4[0],(double)pl4[1],(double)pl4[2],(double)pl4[3],p2);
+    Z3i::RealPoint pp3=projectPoint((double)pl2[0],(double)pl2[1],(double)pl2[2],(double)pl2[3],p3);
+    Z3i::RealPoint pp4=projectPoint((double)pl1[0],(double)pl1[1],(double)pl1[2],(double)pl1[3],p4);
+    
+    double d1=distancePoints(p1,pp1);//distancePointPlane(pp1, (double)l1[0],(double)l1[1],(double)l1[2]);
+    double d2=distancePoints(p2,pp2);//distancePointPlane(pp2, (double)l2[0],(double)l2[1],(double)l2[2]);
+    double d3=distancePoints(p3,pp3);//distancePointPlane(pp3, (double)l3[0],(double)l3[1],(double)l3[2]);
+    double d4=distancePoints(p4,pp4);//distancePointPlane(pp4, (double)l4[0],(double)l4[1],(double)l4[2]);
+    
+    return std::min(d1,std::min(d2,std::min(d3,d4)));
+}
+
+template <typename TPoint>
+template <typename TPoint3D, typename TPoint4D>
+inline
+double FittingPlaneFct<TPoint>::widthTetradron(TPoint3D p1, TPoint3D p2, TPoint3D p3, TPoint3D p4, int index)
+{
+    TPoint4D pl1=planeEquation<TPoint3D,TPoint4D>(p1,p2,p3);
+    TPoint4D pl2=planeEquation<TPoint3D,TPoint4D>(p1,p2,p4);
+    TPoint4D pl3=planeEquation<TPoint3D,TPoint4D>(p2,p3,p4);
+    TPoint4D pl4=planeEquation<TPoint3D,TPoint4D>(p1,p3,p4);
+    
+    Z3i::RealPoint pp1=projectPoint((double)pl3[0],(double)pl3[1],(double)pl3[2],(double)pl3[3],p1);
+    Z3i::RealPoint pp2=projectPoint((double)pl4[0],(double)pl4[1],(double)pl4[2],(double)pl4[3],p2);
+    Z3i::RealPoint pp3=projectPoint((double)pl2[0],(double)pl2[1],(double)pl2[2],(double)pl2[3],p3);
+    Z3i::RealPoint pp4=projectPoint((double)pl1[0],(double)pl1[1],(double)pl1[2],(double)pl1[3],p4);
+    
+    if(index==0)
+        return distancePoints(p1,pp1);
+    if(index==1)
+        return distancePoints(p2,pp2);
+    if(index==2)
+        return distancePoints(p3,pp3);
+    return distancePoints(p4,pp4);
+}
+
+//Digital plane : mu <= ax + by + cz <= omega
+template <typename TPoint>
+inline
+bool FittingPlaneFct<TPoint>::belongDP(int a, int b, int c, int mu, int omega, TPoint p)
+{
+    long int r1=a*p[0]+b*p[1]+c*p[2]+mu;
+    long int r2=a*p[0]+b*p[1]+c*p[2]+omega;
+    return (r1*r2)<=0;
+}
+
+template <typename TPoint>
+vector<TPoint> FittingPlaneFct<TPoint>::countFitting(int a, int b, int c, int mu, int omega, const vector<TPoint>& vecP)
+{
+    vector<TPoint> p;
+    for(size_t it=0; it<vecP.size(); it++)
+        if(belongDP(a,b,c,mu,omega,vecP.at(it)))
+            p.push_back(vecP.at(it));
+    return p;
+}
+
+//Given a tetradron (t1t2t3t4), compute the fitting plane
+template <typename TPoint>
+template <typename TPoint3D, typename TPoint4D>
+inline
+vector<TPoint3D> FittingPlaneFct<TPoint>::fittingTetradron(TPoint3D t1, TPoint3D t2, TPoint3D t3, TPoint3D t4, const vector<TPoint3D>& vecP, double width, int& index)
+{
+    vector<TPoint3D> vP1,vP2,vP3,vP4;
+    double w1=widthTetradron<TPoint3D,TPoint4D>(t1,t2,t3,t4,0);
+    if(w1<=width) {//plane 1 : t2t3t4->t1
+        TPoint4D pl1=planeEquation<TPoint3D,TPoint4D>(t2, t3, t4);
+        TPoint4D pl2=planeEquation<TPoint3D,TPoint4D>(pl1[0], pl1[1], pl1[2], t1);
+        int a=pl1[0];
+        int b=pl1[1];
+        int c=pl1[2];
+        int mu=pl1[3],omega=pl2[3];
+        vP1=countFitting(a,b,c,mu,omega,vecP);
+    }
+    double w2=widthTetradron<TPoint3D,TPoint4D>(t1,t2,t3,t4,1);
+    if(w2<=width) {//plane 2 : t1t3t4->t2
+        TPoint4D pl1=planeEquation<TPoint3D,TPoint4D>(t1, t3, t4);
+        TPoint4D pl2=planeEquation<TPoint3D,TPoint4D>(pl1[0], pl1[1], pl1[2], t2);
+        int a=pl1[0];
+        int b=pl1[1];
+        int c=pl1[2];
+        int mu=pl1[3],omega=pl2[3];
+        vP2=countFitting(a,b,c,mu,omega,vecP);
+    }
+    double w3=widthTetradron<TPoint3D,TPoint4D>(t1,t2,t3,t4,2);
+    if(w3<=width) {//plane 3 : t1t2t4->t3
+        TPoint4D pl1=planeEquation<TPoint3D,TPoint4D>(t1, t2, t4);
+        TPoint4D pl2=planeEquation<TPoint3D,TPoint4D>(pl1[0], pl1[1], pl1[2], t3);
+        int a=pl1[0];
+        int b=pl1[1];
+        int c=pl1[2];
+        int mu=pl1[3],omega=pl2[3];
+        vP3=countFitting(a,b,c,mu,omega,vecP);
+    }
+    double w4=widthTetradron<TPoint3D,TPoint4D>(t1,t2,t3,t4,3);
+    if(w4<=width) {//plane 4 : t1t2t3->t4
+        TPoint4D pl1=planeEquation<TPoint3D,TPoint4D>(t1, t2, t3);
+        TPoint4D pl2=planeEquation<TPoint3D,TPoint4D>(pl1[0], pl1[1], pl1[2], t4);
+        int a=pl1[0];
+        int b=pl1[1];
+        int c=pl1[2];
+        int mu=pl1[3],omega=pl2[3];
+        vP4=countFitting(a,b,c,mu,omega,vecP);
+    }
+    
+    //Sort index of vP1...vP4 to find max fitting
+    vector<size_t> s;
+    s.push_back(vP1.size());
+    s.push_back(vP2.size());
+    s.push_back(vP3.size());
+    s.push_back(vP4.size());
+    vector<size_t> ss=sort_indexes(s);
+    index=ss.at(0);
+    if(index==0)
+        return vP1;
+    if(index==1)
+        return vP2;
+    if(index==2)
+        return vP3;
+    return vP4;
+}
+
+template <typename TPoint>
+template <typename TPoint3D, typename TPoint4D>
+inline
+void FittingPlaneFct<TPoint>::drawFittingTetradron(TPoint3D t1, TPoint3D t2, TPoint3D t3, TPoint3D t4, int index,
+                          int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
+                          Z3i::RealPoint& p11, Z3i::RealPoint& p12, Z3i::RealPoint& p13, Z3i::RealPoint& p14,
+                          Z3i::RealPoint& p21, Z3i::RealPoint& p22, Z3i::RealPoint& p23, Z3i::RealPoint& p24)
+{
+    TPoint4D pl1,pl2;
+    if(index==0) {//plane 1 : t2t3t4->t1
+        pl1=planeEquation<TPoint3D,TPoint4D>(t2, t3, t4);
+        pl2=planeEquation<TPoint3D,TPoint4D>(pl1[0], pl1[1], pl1[2], t1);
+    }
+    else if(index==1) {//plane 2 : t1t3t4->t2
+        pl1=planeEquation<TPoint3D,TPoint4D>(t1, t3, t4);
+        pl2=planeEquation<TPoint3D,TPoint4D>(pl1[0], pl1[1], pl1[2], t2);
+    }
+    else if(index==2) {//plane 3 : t1t2t4->t3
+        pl1=planeEquation<TPoint3D,TPoint4D>(t1, t2, t4);
+        pl2=planeEquation<TPoint3D,TPoint4D>(pl1[0], pl1[1], pl1[2], t3);
+    }
+    else {//plane 4 : t1t2t3->t4
+        pl1=planeEquation<TPoint3D,TPoint4D>(t1, t2, t3);
+        pl2=planeEquation<TPoint3D,TPoint4D>(pl1[0], pl1[1], pl1[2], t4);
+    }
+    
+    int a=pl1[0];
+    int b=pl1[1];
+    int c=pl1[2];
+    int mu=pl1[3],omega=pl2[3];
+    if(c!=0) {
+        //ax+by+cz+mu=0
+        p11[0]=minX;
+        p11[1]=minY;
+        p11[2]=-(mu+a*p11[0]+b*p11[1])/c;
+        p12[0]=minX;
+        p12[1]=maxY;
+        p12[2]=-(mu+a*p12[0]+b*p12[1])/c;
+        p13[0]=maxX;
+        p13[1]=maxY;
+        p13[2]=-(mu+a*p13[0]+b*p13[1])/c;
+        p14[0]=maxX;
+        p14[1]=minY;
+        p14[2]=-(mu+a*p14[0]+b*p14[1])/c;
+        //ax+by+cz+omega=0
+        p21[0]=minX;
+        p21[1]=minY;
+        p21[2]=-(omega+a*p21[0]+b*p21[1])/c;
+        p22[0]=minX;
+        p22[1]=maxY;
+        p22[2]=-(omega+a*p22[0]+b*p22[1])/c;
+        p23[0]=maxX;
+        p23[1]=maxY;
+        p23[2]=-(omega+a*p23[0]+b*p23[1])/c;
+        p24[0]=maxX;
+        p24[1]=minY;
+        p24[2]=-(omega+a*p24[0]+b*p24[1])/c;
+    }
+    else if(b!=0) {
+        //ax+by+cz+mu=0
+        p11[0]=minX;
+        p11[2]=minZ;
+        p11[1]=-(mu+a*p11[0]+c*p11[2])/b;
+        p12[0]=minX;
+        p12[2]=maxZ;
+        p12[1]=-(mu+a*p12[0]+c*p12[2])/b;
+        p13[0]=maxX;
+        p13[2]=maxZ;
+        p13[1]=-(mu+a*p13[0]+c*p13[2])/b;
+        p14[0]=maxX;
+        p14[2]=minZ;
+        p14[1]=-(mu+a*p14[0]+c*p14[2])/b;
+        //ax+by+cz+omega=0
+        p21[0]=minX;
+        p21[2]=minZ;
+        p21[1]=-(omega+a*p21[0]+c*p21[2])/b;
+        p22[0]=minX;
+        p22[2]=maxZ;
+        p22[1]=-(omega+a*p22[0]+c*p22[2])/b;
+        p23[0]=maxX;
+        p23[2]=maxZ;
+        p23[1]=-(omega+a*p23[0]+c*p23[2])/b;
+        p24[0]=maxX;
+        p24[2]=minZ;
+        p24[1]=-(omega+a*p24[0]+c*p24[2])/b;
+    }
+    else if(a!=0) {
+        //ax+by+cz+mu=0
+        p11[2]=minZ;
+        p11[1]=minY;
+        p11[0]=-(mu+c*p11[2]+b*p11[1])/a;
+        p12[2]=minZ;
+        p12[1]=maxY;
+        p12[0]=-(mu+c*p12[2]+b*p12[1])/a;
+        p13[2]=maxZ;
+        p13[1]=maxY;
+        p13[0]=-(mu+c*p13[2]+b*p13[1])/a;
+        p14[2]=maxZ;
+        p14[1]=minY;
+        p14[0]=-(mu+c*p14[2]+b*p14[1])/a;
+        //ax+by+cz+omega=0
+        p21[2]=minZ;
+        p21[1]=minY;
+        p21[0]=-(omega+c*p21[2]+b*p21[1])/a;
+        p22[2]=minZ;
+        p22[1]=maxY;
+        p22[0]=-(omega+c*p22[2]+b*p22[1])/a;
+        p23[2]=maxZ;
+        p23[1]=maxY;
+        p23[0]=-(omega+c*p23[2]+b*p23[1])/a;
+        p24[2]=maxZ;
+        p24[1]=minY;
+        p24[0]=-(omega+c*p24[2]+b*p24[1])/a;
+    }
+}
+/********** Plane fitting functions *******************/
