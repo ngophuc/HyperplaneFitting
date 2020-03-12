@@ -145,7 +145,7 @@ int main(int argc, char** argv)
     viewer << CustomColors3D(Color(0,250,0,255),Color(0,250,0,255));
     for (size_t i=0; i<vecPoints.size(); i++) {
         Z3i::Point p(vecPoints[i][0],vecPoints[i][1],vecPoints[i][2]);
-        viewer.addBall(p,0.1);//viewer << p;
+        viewer.addBall(p,0.1);
     }
     
     //display the best fitting plane
@@ -153,7 +153,6 @@ int main(int argc, char** argv)
     Z3i::Point p2=vecVertices.at(vecTetraFilter.at(idMax)[1]);
     Z3i::Point p3=vecVertices.at(vecTetraFilter.at(idMax)[2]);
     Z3i::Point p4=vecVertices.at(vecTetraFilter.at(idMax)[3]);
-    cout<<"Best fitting :"<<p1<<p2<<p3<<p4;
     vector<Z3i::Point> res=FittingPlaneFct<Z3i::Point>::fittingTetradron<Z3i::Point,Z4i::Point>(p1,p2,p3,p4,vecVertices,width,index);
     viewer << CustomColors3D(Color(0,0,250),Color(0,0,250));
     for (vector<Z3i::Point>::iterator it = res.begin(), end = res.end(); it != end; ++it)
@@ -163,13 +162,19 @@ int main(int argc, char** argv)
     Z3i::RealPoint p11,p12,p13,p14,p21,p22,p23,p24;
     FittingPlaneFct<Z3i::Point>::drawFittingTetradron<Z3i::Point,Z4i::Point>(p1,p2,p3,p4,index,bmin[0],bmin[1],bmin[2],bmax[0],bmax[1],bmax[2],p11,p12,p13,p14,p21,p22,p23,p24);
     viewer << CustomColors3D(Color(250,0,0,100),Color(250,0,0,100));
-    viewer.addTriangle(p1,p2,p3);
-    viewer.addTriangle(p1,p2,p4);
-    viewer.addTriangle(p4,p2,p3);
-    viewer.addTriangle(p1,p4,p3);
     viewer.addQuad(p11, p12, p13, p14);
     viewer.addQuad(p21, p22, p23, p24);
     /***** Display the result of fitting *****/
+    
+    /****Write the result to file ***/
+    ofstream outfile;
+    std::string output=filename+"_Inliers.txt";
+    outfile.open (output.c_str());
+    outfile << res.size() << std::endl;
+    for (vector<Z3i::Point>::iterator it = res.begin(), end = res.end(); it != end; ++it)
+        outfile << (*it)[0] << " " << (*it)[1] << " " << (*it)[2] <<std::endl;
+    outfile.close();
+    /****Write the result to file ***/
     
     viewer << CustomColors3D(DGtal::Color::Gray, DGtal::Color::Gray);
     viewer << MyViewer::updateDisplay;

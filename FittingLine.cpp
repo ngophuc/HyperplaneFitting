@@ -67,6 +67,7 @@ int main(int argc, char** argv){
     dt2.insert(L.begin(),L.end());
     /***** Delaunay Triangulation *****/
     
+    /****Save the result into image ***/
     Board2D aBoard;
     Z2i::Point bmin,bmax;
     FittingLineFct<Z2i::Point>::findBoundingBox(tL,bmin,bmax);
@@ -132,6 +133,17 @@ int main(int argc, char** argv){
         aBoard.fillCircle((*it)[0],(*it)[1],0.4);
     output=filename+"_Output.svg";
     aBoard.saveSVG(output.c_str());
+    /****Save the result into image ***/
+    
+    /****Write the result to file ***/
+    ofstream outfile;
+    output=filename+"_Inliers.txt";
+    outfile.open (output.c_str());
+    outfile << res.size() << std::endl;
+    for (vector<Z2i::Point>::iterator it = res.begin(), end = res.end(); it != end; ++it)
+        outfile << (*it)[0] << " " << (*it)[1] << std::endl;
+    outfile.close();
+    /****Write the result to file ***/
     
     return 0;
 }
