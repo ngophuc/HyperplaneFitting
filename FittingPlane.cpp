@@ -21,7 +21,7 @@ typedef Delaunay::Point            Point;
 int main(int argc, char** argv)
 {
     if(argc!=2) {
-        std::cout<<"Usage: FittingLines <filename> \n";
+        std::cout<<"Usage: FittingPlane <filename> \n";
         exit(EXIT_FAILURE);
     }
     string baseInputName=argv[1];
