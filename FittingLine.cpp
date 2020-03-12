@@ -67,11 +67,9 @@ int main(int argc, char** argv){
     dt2.insert(L.begin(),L.end());
     /***** Delaunay Triangulation *****/
     
-    /****Save the result into image ***/
-    Board2D aBoard;
+    /**** Run fitting algorithm ***/
     Z2i::Point bmin,bmax;
     FittingLineFct<Z2i::Point>::findBoundingBox(tL,bmin,bmax);
-    //Draw the input points
     Delaunay_triangulation_2::size_type n = dt2.number_of_vertices();
     std::vector<Vertex_handle> TV(n);
     size_t i = 0;
@@ -79,11 +77,8 @@ int main(int argc, char** argv){
     for (Vertex_iterator it = dt2.vertices_begin(), end = dt2.vertices_end(); it != end; ++it) {
         TV[i++] = it;
         vecVertices.push_back(Z2i::Point((*it).point()[0],(*it).point()[1]));
-        aBoard.fillCircle((*it).point()[0],(*it).point()[1],0.3);
     }
-    string output=filename+"_Input.svg";
-    aBoard.saveSVG(output.c_str());
-
+    
     //Get triangles from Delaunay triangulation
     CGAL::Unique_hash_map<Vertex_handle, std::size_t > V;
     V[dt2.infinite_vertex()] = 0;
@@ -96,8 +91,6 @@ int main(int argc, char** argv){
     //Filter over triangle width
     double width=2.5;
     vector<Z3i::Point> vecTriangle;
-    aBoard.setLineWidth(1.0);
-    aBoard.setPenColor(DGtal::Color::Blue);
     for(vector<Z3i::Point>::const_iterator it=vecFaces.begin(); it!= vecFaces.end(); it++) {
         double w=FittingLineFct<Z2i::Point>::widthTriangle<Z2i::Point,Z3i::Point>(vecVertices.at((*it)[0]),vecVertices.at((*it)[1]),vecVertices.at((*it)[2]));
         if(w<width)
@@ -120,24 +113,11 @@ int main(int argc, char** argv){
     Z2i::Point p2=vecVertices.at(vecTriangle.at(idMax)[1]);
     Z2i::Point p3=vecVertices.at(vecTriangle.at(idMax)[2]);
     vector<Z2i::Point> res=FittingLineFct<Z2i::Point>::fittingTriangle<Z2i::Point,Z3i::Point>(p1,p2,p3,vecVertices,width,index);
-    
-    //Draw the best fitting line
-    Z2i::RealPoint dp1,dp2,dp3,dp4;
-    FittingLineFct<Z2i::Point>::drawFittingTriangle<Z2i::Point,Z3i::Point>(p1,p2,p3,bmin,bmax,index,dp1,dp2,dp3,dp4);
-    aBoard.setLineWidth(3.0);
-    aBoard.setPenColor(DGtal::Color::Red);
-    aBoard.drawLine(dp1[0],dp1[1],dp2[0],dp2[1]);
-    aBoard.drawLine(dp3[0],dp3[1],dp4[0],dp4[1]);
-    aBoard.setPenColor(DGtal::Color::Blue);
-    for (vector<Z2i::Point>::iterator it = res.begin(), end = res.end(); it != end; ++it)
-        aBoard.fillCircle((*it)[0],(*it)[1],0.4);
-    output=filename+"_Output.svg";
-    aBoard.saveSVG(output.c_str());
-    /****Save the result into image ***/
+    /**** Run fitting algorithm ***/
     
     /****Write the result to file ***/
     ofstream outfile;
-    output=filename+"_Inliers.txt";
+    string output=filename+"_Inliers.txt";
     outfile.open (output.c_str());
     outfile << res.size() << std::endl;
     for (vector<Z2i::Point>::iterator it = res.begin(), end = res.end(); it != end; ++it)
@@ -145,5 +125,5 @@ int main(int argc, char** argv){
     outfile.close();
     /****Write the result to file ***/
     
-    return 0;
+    return EXIT_SUCCESS;
 }

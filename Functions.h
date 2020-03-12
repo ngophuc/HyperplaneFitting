@@ -14,10 +14,6 @@ using namespace std;
 
 #include "DGtal/base/BasicTypes.h"
 #include "DGtal/helpers/StdDefs.h"
-#include "DGtal/io/viewers/Viewer3D.h"
-#include "DGtal/io/readers/PointListReader.h"
-#include "DGtal/io/boards/Board2D.h"
-#include "DGtal/io/Color.h"
 
 using namespace DGtal;
 
@@ -30,7 +26,6 @@ namespace Z4i {
     typedef Space::RealPoint RealPoint;
     typedef Space::RealVector RealVector;
 }
-typedef DGtal::Viewer3D<> MyViewer;
 
 //Common functions
 vector<size_t> sort_indexes(const vector<size_t> &v);

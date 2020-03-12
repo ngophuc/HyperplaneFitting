@@ -112,7 +112,6 @@ int main(int argc, char** argv)
             vecTriFilter.push_back(Z3i::Point(t1,t2,t4));//124
         }
     }
-    cout<<"vecTetraFilter.size="<<vecTetraFilter.size()<<endl;
     /***** Filter over triangle width *****/
     
     /***** Fitting plane from tetradra *****/
@@ -131,44 +130,16 @@ int main(int argc, char** argv)
             idMax=idT;
         }
     }
-    /***** Fitting plane from tetradra *****/
-    
-    /***** Display the result of fitting *****/
-    QApplication application(argc,argv);
-    MyViewer viewer;
-    viewer.show();
-    viewer.setBackgroundColor(QColor(255, 255, 255, 0));
-    viewer << SetMode3D("PointVector", "Both");//Grid
-    viewer << CustomColors3D(Color(0,250,0,255),Color(0,250,0,255));
-    //Display points
-    viewer << SetMode3D("PointVector", "Both");//Grid
-    viewer << CustomColors3D(Color(0,250,0,255),Color(0,250,0,255));
-    for (size_t i=0; i<vecPoints.size(); i++) {
-        Z3i::Point p(vecPoints[i][0],vecPoints[i][1],vecPoints[i][2]);
-        viewer.addBall(p,0.1);
-    }
-    
-    //display the best fitting plane
     Z3i::Point p1=vecVertices.at(vecTetraFilter.at(idMax)[0]);
-    Z3i::Point p2=vecVertices.at(vecTetraFilter.at(idMax)[1]);
-    Z3i::Point p3=vecVertices.at(vecTetraFilter.at(idMax)[2]);
-    Z3i::Point p4=vecVertices.at(vecTetraFilter.at(idMax)[3]);
-    vector<Z3i::Point> res=FittingPlaneFct<Z3i::Point>::fittingTetradron<Z3i::Point,Z4i::Point>(p1,p2,p3,p4,vecVertices,width,index);
-    viewer << CustomColors3D(Color(0,0,250),Color(0,0,250));
-    for (vector<Z3i::Point>::iterator it = res.begin(), end = res.end(); it != end; ++it)
-        viewer.addBall(*it,0.15);
-    Z3i::Point bmin,bmax;
-    FittingPlaneFct<Z3i::Point>::findBoundingBox(vecVertices,bmin,bmax);
-    Z3i::RealPoint p11,p12,p13,p14,p21,p22,p23,p24;
-    FittingPlaneFct<Z3i::Point>::drawFittingTetradron<Z3i::Point,Z4i::Point>(p1,p2,p3,p4,index,bmin[0],bmin[1],bmin[2],bmax[0],bmax[1],bmax[2],p11,p12,p13,p14,p21,p22,p23,p24);
-    viewer << CustomColors3D(Color(250,0,0,100),Color(250,0,0,100));
-    viewer.addQuad(p11, p12, p13, p14);
-    viewer.addQuad(p21, p22, p23, p24);
-    /***** Display the result of fitting *****/
+   Z3i::Point p2=vecVertices.at(vecTetraFilter.at(idMax)[1]);
+   Z3i::Point p3=vecVertices.at(vecTetraFilter.at(idMax)[2]);
+   Z3i::Point p4=vecVertices.at(vecTetraFilter.at(idMax)[3]);
+   vector<Z3i::Point> res=FittingPlaneFct<Z3i::Point>::fittingTetradron<Z3i::Point,Z4i::Point>(p1,p2,p3,p4,vecVertices,width,index);
+    /***** Fitting plane from tetradra *****/
     
     /****Write the result to file ***/
     ofstream outfile;
-    std::string output=filename+"_Inliers.txt";
+    string output=filename+"_Inliers.txt";
     outfile.open (output.c_str());
     outfile << res.size() << std::endl;
     for (vector<Z3i::Point>::iterator it = res.begin(), end = res.end(); it != end; ++it)
@@ -176,7 +147,5 @@ int main(int argc, char** argv)
     outfile.close();
     /****Write the result to file ***/
     
-    viewer << CustomColors3D(DGtal::Color::Gray, DGtal::Color::Gray);
-    viewer << MyViewer::updateDisplay;
-    return application.exec();
+    return EXIT_SUCCESS;
 }
