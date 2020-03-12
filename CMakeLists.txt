@@ -55,5 +55,5 @@ target_link_libraries(FittingLine ${DGTAL_LIBRARIES} ${DGtalToolsLibDependencies
 add_executable(FittingPlane FittingPlane Functions.h Functions.ih)
 target_link_libraries(FittingPlane ${DGTAL_LIBRARIES} ${DGtalToolsLibDependencies} ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${EIGEN3_INCLUDE_DIRS} ${OpenCV_LIBS})
 
-add_executable(FittingHyperplane FittingHyperplane)
+add_executable(FittingHyperplane FittingHyperplane Functions.h Functions.ih)
 target_link_libraries(FittingHyperplane ${DGTAL_LIBRARIES} ${DGtalToolsLibDependencies} ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${EIGEN3_INCLUDE_DIRS} ${OpenCV_LIBS})

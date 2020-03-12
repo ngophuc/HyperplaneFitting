@@ -84,5 +84,26 @@ public:
                               Z3i::RealPoint& p21, Z3i::RealPoint& p22, Z3i::RealPoint& p23, Z3i::RealPoint& p24);
 };
 
+template<typename TPoint>
+struct FittingHyperplaneFct
+{
+public:
+    static void findBoundingBox(const vector<TPoint>& vec, TPoint& min, TPoint& max);
+    template <typename TPoint4D>
+    static vector<long long int> hyperplaneEquation(TPoint4D p1, TPoint4D p2, TPoint4D p3, TPoint4D p4);
+    template <typename TPoint4D>
+    static vector<long long int> hyperplaneEquation(long long int a, long long int b, long long int c, long long int d, TPoint4D p);
+    static Z4i::RealPoint projectPoint(const double aa, const double bb, const double cc, const double dd, const double ee, const TPoint aM);
+    static double distancePointHyperplane(TPoint p, double a, double b, double c, double d, double e);
+    template <typename TPoint4D>
+    static double widthFullCell(TPoint4D p1, TPoint4D p2, TPoint4D p3, TPoint4D p4, TPoint4D p5);
+    template <typename TPoint4D>
+    static double widthFullCell(TPoint4D p1, TPoint4D p2, TPoint4D p3, TPoint4D p4, TPoint4D p5, int index);
+    static bool belongHP(int a, int b, int c, int d, int mu, int omega, TPoint p);
+    static vector<TPoint> countFitting(int a, int b, int c, int d, int mu, int omega, const vector<TPoint>& vecP);
+    template <typename TPoint4D>
+    static vector<TPoint4D> fittingFullCell(TPoint4D t1, TPoint4D t2, TPoint4D t3, TPoint4D t4, TPoint4D t5, const vector<TPoint4D>& vecP, double width, int& index);
+};
+
 #include "Functions.ih" // Includes inline functions.
 #endif // FUNCTIONS_H
