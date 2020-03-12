@@ -23,4 +23,6 @@ To install the tools you have to follow the following steps:
   From the HyperplaneFitting directory:
     mkdir build; cd build
     cmake .. -DDGtal_DIR=../DGtal/build
-    make -j 5
+    make
+    
+- Two execution programs are generated : FittingLine for 2D fitting and FittingPlane for 3D fitting. 
