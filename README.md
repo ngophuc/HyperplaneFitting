@@ -9,10 +9,14 @@ The program uses some C++ 11 feature, so we recommend the use of gcc 4.2 or late
 * DGtal (To install DGtal see https://github.com/DGtal-team/DGtal/blob/master/README.md)
 * Eigen3
 * CGAL
-* CMake 3.15.2
+* CMake 2.8.11
 
 # Installation 
-To install the program see <a href="https://github.com/ngophuc/HyperplaneFitting/blob/master/Install.txt">INSTALL.txt</a> file
+To install the program see <a href="https://github.com/ngophuc/HyperplaneFitting/blob/master/Install.txt">INSTALL.txt</a> file.
+
+Two execution programs are generated after the complication: 
+* <b>FittingLine</b> for 2D fitting 
+* <b>FittingPlane</b> for 3D fitting. 
 
 # Examples
 The program takes as input a file containing a list of points with the first line indicating the total number of point, and following by the coordinates of each point. 
