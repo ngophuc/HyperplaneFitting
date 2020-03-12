@@ -49,7 +49,7 @@ The program takes as input a file containing a list of points with the first lin
 8 2 2
 9 2 2
 ```
-You can find more examples in <b>Data/Data2D</b> and <b>Data/Data3D</b>
+You can find more examples in <b>Data/Data2D</b>, <b>Data/Data3D</b> and <b>Data/Data4D</b>
 
 * Run the program <b>FittingLine</b> for line fitting
 ```
