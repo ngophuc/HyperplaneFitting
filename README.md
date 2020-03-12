@@ -16,7 +16,8 @@ To install the program see <a href="https://github.com/ngophuc/HyperplaneFitting
 
 Two execution programs are generated after the complication: 
 * <b>FittingLine</b> for 2D fitting 
-* <b>FittingPlane</b> for 3D fitting. 
+* <b>FittingPlane</b> for 3D fitting
+* <b>FittingHyperplane</b> for 4D fitting. 
 
 # Examples
 The program takes as input a file containing a list of points with the first line indicating the total number of point, and following by the coordinates of each point. 
@@ -57,4 +58,8 @@ You can find more examples in <b>Data/Data2D</b> and <b>Data/Data3D</b>
 * Run the program <b>FittingPlane</b> for plane fitting
 ```
   ./FittingPlane points3D.txt
+```
+* Run the program <b>FittingHyperplane</b> for 4D hyperplane fitting
+```
+  ./FittingHyperplane points4D.txt
 ```
