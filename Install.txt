@@ -25,4 +25,4 @@ To install the tools you have to follow the following steps:
     cmake .. -DDGtal_DIR=../DGtal/build
     make
     
-- Two execution programs are generated : FittingLine for 2D fitting and FittingPlane for 3D fitting. 
+- Three execution programs are generated : FittingLine for 2D fitting, FittingPlane for 3D fitting and FittingHyperplane for 4D fitting. 
