@@ -46,11 +46,11 @@ The program takes as input a file containing a list of points with the first lin
 ```
 You can find more examples in <b>Data/Data2D</b> and <b>Data/Data3D</b>
 
-* Run the program <b>FittingLine</b> 
+* Run the program <b>FittingLine</b> for line fitting
 ```
   ./FittingLine -i points2D.txt
 ```
-* Run the program <b>FittingPlane</b> 
+* Run the program <b>FittingPlane</b> for plane fitting
 ```
   ./FittingPlane -i points3D.txt
 ```
