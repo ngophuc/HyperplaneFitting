@@ -14,7 +14,7 @@ The program uses some C++ 11 feature, so we recommend the use of gcc 4.2 or late
 # Installation 
 To install the program see <a href="https://github.com/ngophuc/HyperplaneFitting/blob/master/Install.txt">INSTALL.txt</a> file.
 
-Two execution programs are generated after the complication: 
+Three execution programs are generated after the complication: 
 * <b>FittingLine</b> for 2D fitting 
 * <b>FittingPlane</b> for 3D fitting
 * <b>FittingHyperplane</b> for 4D fitting. 
