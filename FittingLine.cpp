@@ -36,10 +36,18 @@ struct Cropped_voronoi_from_delaunay{
 };
 
 
-int main(){
+int main(int argc, char** argv){
+    if(argc!=2) {
+        std::cout<<"Usage: FittingLines <filename> \n";
+        exit(EXIT_FAILURE);
+    }
+    string baseInputName=argv[1];
+    string singleName = baseInputName.substr(baseInputName.find_last_of("/")+1);
+    string outputExt = baseInputName.substr(baseInputName.find_last_of(".")+1);
+    singleName = singleName.substr(0, singleName.find_last_of("."));
     /*****  Read input points *****/
-    string filename="test1";//cube2_d8_boundary6
-    string input=filename+".txt";
+    string filename=singleName;
+    string input=baseInputName;
     ifstream inFile;
     inFile.open(input.c_str());
     int nbPoint=0, x=0, y=0;
@@ -62,8 +70,6 @@ int main(){
     Board2D aBoard;
     Z2i::Point bmin,bmax;
     FittingLineFct<Z2i::Point>::findBoundingBox(tL,bmin,bmax);
-    //bmin=bmin-Z2i::Point(2,2);
-    //bmax=bmax+Z2i::Point(2,2);
     //Draw the input points
     Delaunay_triangulation_2::size_type n = dt2.number_of_vertices();
     std::vector<Vertex_handle> TV(n);
@@ -104,13 +110,11 @@ int main(){
         Z2i::Point p2=vecVertices.at(vecTriangle.at(idT)[1]);
         Z2i::Point p3=vecVertices.at(vecTriangle.at(idT)[2]);
         vector<Z2i::Point> res=FittingLineFct<Z2i::Point>::fittingTriangle<Z2i::Point,Z3i::Point>(p1,p2,p3,vecVertices,width,index);
-        //cout<<"fitting of traingle "<<idT<<" contains "<<res.size()<<" points"<<endl;
         if(res.size()>=max) {
             max=res.size();
             idMax=idT;
         }
     }
-    //cout<<"Max fitting is "<<idMax<<" with "<<max<<" points"<<endl;
     Z2i::Point p1=vecVertices.at(vecTriangle.at(idMax)[0]);
     Z2i::Point p2=vecVertices.at(vecTriangle.at(idMax)[1]);
     Z2i::Point p3=vecVertices.at(vecTriangle.at(idMax)[2]);

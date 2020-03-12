@@ -20,9 +20,17 @@ typedef Delaunay::Point            Point;
 
 int main(int argc, char** argv)
 {
+    if(argc!=2) {
+        std::cout<<"Usage: FittingLines <filename> \n";
+        exit(EXIT_FAILURE);
+    }
+    string baseInputName=argv[1];
+    string singleName = baseInputName.substr(baseInputName.find_last_of("/")+1);
+    string outputExt = baseInputName.substr(baseInputName.find_last_of(".")+1);
+    singleName = singleName.substr(0, singleName.find_last_of("."));
     /*****  Read input points *****/
-    string filename="test2";//cube2_d8_boundary6
-    string input=filename+".txt";
+    string filename=singleName;
+    string input=baseInputName;
     ifstream inFile;
     inFile.open(input.c_str());
     int nbPoint=0, x=0, y=0, z=0;
@@ -83,7 +91,6 @@ int main(int argc, char** argv)
         vecTri.push_back(Z3i::Point(vecTetra.at(it)[1],vecTetra.at(it)[2],vecTetra.at(it)[3]));//123
         vecTri.push_back(Z3i::Point(vecTetra.at(it)[0],vecTetra.at(it)[1],vecTetra.at(it)[3]));//013
     }
-    //cout<<"vecTetra="<<vecTetra.size()<<endl;
     /***** copy points cgal -> dgtal *****/
     
     /***** Filter over tetradron width *****/
@@ -119,13 +126,11 @@ int main(int argc, char** argv)
         Z3i::Point p4=vecVertices.at(vecTetraFilter.at(idT)[3]);
         
         vector<Z3i::Point> res=FittingPlaneFct<Z3i::Point>::fittingTetradron<Z3i::Point,Z4i::Point>(p1,p2,p3,p4,vecVertices,width,index);
-        //cout<<"fitting of tetradron "<<idT<<" (index="<<index<<") contains "<<res.size()<<" points"<<endl;
         if(res.size()>=max) {
             max=res.size();
             idMax=idT;
         }
     }
-    //cout<<"Max fitting is "<<idMax<<" with "<<max<<"/"<<vecVertices.size()<<" points"<<endl;
     /***** Fitting plane from tetradra *****/
     
     /***** Display the result of fitting *****/
@@ -144,7 +149,6 @@ int main(int argc, char** argv)
     }
     
     //display the best fitting plane
-    
     Z3i::Point p1=vecVertices.at(vecTetraFilter.at(idMax)[0]);
     Z3i::Point p2=vecVertices.at(vecTetraFilter.at(idMax)[1]);
     Z3i::Point p3=vecVertices.at(vecTetraFilter.at(idMax)[2]);
@@ -153,7 +157,7 @@ int main(int argc, char** argv)
     vector<Z3i::Point> res=FittingPlaneFct<Z3i::Point>::fittingTetradron<Z3i::Point,Z4i::Point>(p1,p2,p3,p4,vecVertices,width,index);
     viewer << CustomColors3D(Color(0,0,250),Color(0,0,250));
     for (vector<Z3i::Point>::iterator it = res.begin(), end = res.end(); it != end; ++it)
-        viewer.addBall(*it,0.15);//viewer << p;
+        viewer.addBall(*it,0.15);
     Z3i::Point bmin,bmax;
     FittingPlaneFct<Z3i::Point>::findBoundingBox(vecVertices,bmin,bmax);
     Z3i::RealPoint p11,p12,p13,p14,p21,p22,p23,p24;
