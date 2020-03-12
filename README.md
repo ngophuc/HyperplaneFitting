@@ -52,9 +52,9 @@ You can find more examples in <b>Data/Data2D</b> and <b>Data/Data3D</b>
 
 * Run the program <b>FittingLine</b> for line fitting
 ```
-  ./FittingLine -i points2D.txt
+  ./FittingLine points2D.txt
 ```
 * Run the program <b>FittingPlane</b> for plane fitting
 ```
-  ./FittingPlane -i points3D.txt
+  ./FittingPlane points3D.txt
 ```
