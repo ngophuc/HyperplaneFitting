@@ -95,9 +95,9 @@ double FittingLineFct<TPoint>::widthTriangle(TPoint2D p1, TPoint2D p2, TPoint2D 
     TPoint3D l2=lineEquation<TPoint2D,TPoint3D>(p3,p1);
     TPoint3D l3=lineEquation<TPoint2D,TPoint3D>(p2,p1);
     
-    Z2i::RealPoint pp3=projectPoint((double)l1[0],(double)l1[1],(double)l1[2],p1);
+    Z2i::RealPoint pp1=projectPoint((double)l1[0],(double)l1[1],(double)l1[2],p1);
     Z2i::RealPoint pp2=projectPoint((double)l2[0],(double)l2[1],(double)l2[2],p2);
-    Z2i::RealPoint pp1=projectPoint((double)l3[0],(double)l3[1],(double)l3[2],p3);
+    Z2i::RealPoint pp3=projectPoint((double)l3[0],(double)l3[1],(double)l3[2],p3);
     
     double d1=distancePoints(p1,pp1);//distancePointSegment(pp1, (double)l1[0],(double)l1[1],(double)l1[2]);
     double d2=distancePoints(p2,pp2);//distancePointSegment(pp2, (double)l2[0],(double)l2[1],(double)l2[2]);
@@ -114,9 +114,9 @@ double FittingLineFct<TPoint>::widthTriangle(TPoint2D p1, TPoint2D p2, TPoint2D 
     TPoint3D l2=lineEquation<TPoint2D,TPoint3D>(p3,p1);
     TPoint3D l3=lineEquation<TPoint2D,TPoint3D>(p2,p1);
 
-    Z2i::RealPoint pp3=projectPoint((double)l1[0],(double)l1[1],(double)l1[2],p1);
+    Z2i::RealPoint pp1=projectPoint((double)l1[0],(double)l1[1],(double)l1[2],p1);
     Z2i::RealPoint pp2=projectPoint((double)l2[0],(double)l2[1],(double)l2[2],p2);
-    Z2i::RealPoint pp1=projectPoint((double)l3[0],(double)l3[1],(double)l3[2],p3);
+    Z2i::RealPoint pp3=projectPoint((double)l3[0],(double)l3[1],(double)l3[2],p3);
 
     double d1=distancePoints(p1,pp1);//distancePointSegment(pp1, (double)l1[0],(double)l1[1],(double)l1[2]);
     double d2=distancePoints(p2,pp2);//distancePointSegment(pp2, (double)l2[0],(double)l2[1],(double)l2[2]);
